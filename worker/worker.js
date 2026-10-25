@@ -29,7 +29,7 @@ export default {
     if (!question) return new Response("Missing question", { status: 400, headers: cors });
     const history = (Array.isArray(body.history) ? body.history : []).slice(-6)
       .map(h => ({ role: h.role === "model" ? "model" : "user", parts: [{ text: String(h.text || "").slice(0, 800) }] }));
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${env.GEMINI_MODEL || "gemini-2.5-flash"}:generateContent?key=${env.GEMINI_API_KEY}`, {
+    const ask = () => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${env.GEMINI_MODEL || "gemini-2.5-flash"}:generateContent?key=${env.GEMINI_API_KEY}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -38,9 +38,15 @@ export default {
         generationConfig: { temperature: 0.2, maxOutputTokens: 800, thinkingConfig: { thinkingBudget: 0 } }
       })
     });
-    if (!res.ok) return new Response(JSON.stringify({ answer: "" }), { status: 502, headers: { ...cors, "Content-Type": "application/json" } });
-    const data = await res.json();
-    const answer = data?.candidates?.[0]?.content?.parts?.map(p => p.text).join("") || "";
+    // Gemini occasionally returns an empty candidate; retry once before giving up.
+    let answer = "";
+    for (let attempt = 0; attempt < 2 && !answer; attempt++) {
+      const res = await ask();
+      if (!res.ok) continue;
+      const data = await res.json();
+      answer = (data?.candidates?.[0]?.content?.parts?.map(p => p.text).join("") || "").trim();
+    }
+    if (!answer) return new Response(JSON.stringify({ answer: "" }), { status: 502, headers: { ...cors, "Content-Type": "application/json" } });
     return new Response(JSON.stringify({ answer }), { headers: { ...cors, "Content-Type": "application/json" } });
   }
 };
