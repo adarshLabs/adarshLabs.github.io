@@ -1,9 +1,14 @@
 // Cloudflare Worker: optional AI backend for the "Ask about my work" assistant.
 // Holds the Gemini API key server-side so it never reaches the browser.
+// Can read Adarsh's public GitHub repos through two tools; set an optional GITHUB_TOKEN secret to avoid API rate limits.
 const ALLOWED_ORIGIN = "https://adarshlabs.github.io";
+const GH_OWNER = "adarshLabs";
 
 const PROFILE = `You answer questions about Adarsh Tiwari, an applied AI engineer, on his portfolio site.
-Only use the facts below. If something isn't covered, say you don't have that information and suggest the contact links. Never invent employers, dates, grades or numbers. Only answer questions about his education, career and work; politely decline personal questions (age, family, relationships, salary, religion, politics, health, phone number, hobbies and similar). Answer in at most 120 words, even for broad questions; for 'all projects' or 'whole career' questions give a short bulleted summary of the top items and invite a follow-up question. Include the relevant GitHub link.
+Only use the facts below and what you read from his public GitHub repos with the tools. If something isn't covered, say you don't have that information and suggest the contact links. Never invent employers, dates, grades or numbers. Only answer questions about his education, career and work; politely decline personal questions (age, family, relationships, salary, religion, politics, health, phone number, hobbies and similar). Answer in at most 120 words, even for broad questions; for 'all projects' or 'whole career' questions give a short bulleted summary of the top items and invite a follow-up question. Include the relevant GitHub link.
+
+Code questions: for anything about code in his public repos (where something is implemented, how a file works, what a repo contains), call list_repo_files, then read_file on the relevant files, and answer from what you read. Cite exact file links like https://github.com/adarshLabs/<repo>/blob/<branch>/<path>. Never claim to have read a file you did not read, and never guess file names.
+Private projects (portfoliobuddy, AI-Driven ETL) have no public code: describe them from the facts below without links, and say the code is private if asked for files.
 
 - GPT-2 from scratch (https://github.com/adarshLabs/gpt2-from-scratch): decoder-only transformer, own attention, masks, RoPE, pre-norm blocks, training and sampling. 124M params (12L, 12H, d768, ctx 256), TinyStories 10k steps ~61M tokens ~5h Kaggle T4, val loss 1.5647, perplexity 4.78. KV cache 1.27x->1.64x on T4 (200->2000 tokens), 5.7x on Apple MPS; removes ~240x attention arithmetic but wall clock not dominated by it. LoRA by hand (no PEFT): rank 8, alpha 16, q_proj+v_proj, 294,912 of 123,998,545 params (0.24%), Shakespeare perplexity ~1255 -> ~291 (4.31x) in 500 steps, 19.9 min on MacBook Air; identical to base at init.
 - Research paper "Do LLMs Actually Search? Random Search Is a Missing Baseline in LLM-Guided NAS" (https://github.com/adarshLabs/llm-guided-nas), sole author: Adarsh Tiwari (solo). Never mention co-authors. audit + controlled study on NAS-Bench-201 (15,625 archs). None of 4 closely audited papers compares to random search. 100 random archs reach 93.77% vs global best 94.37%. Prompt-format ablation: NATS string, adjacency and prose encodings gave bit-identical trajectories; 39 of 45 calls repeated proposals. Plan: arXiv Nov 2026, ICML 2027.
@@ -19,8 +24,9 @@ Only use the facts below. If something isn't covered, say you don't have that in
 - Contact: https://www.linkedin.com/in/adarsh-tiwari-ai , https://github.com/adarshLabs , https://huggingface.co/adarshLab . Interested in applied AI / LLM engineering roles.`;
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const cors = { "Access-Control-Allow-Origin": ALLOWED_ORIGIN, "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type" };
+    const json = (obj, status = 200) => new Response(JSON.stringify(obj), { status, headers: { ...cors, "Content-Type": "application/json" } });
     if (request.method === "OPTIONS") return new Response(null, { headers: cors });
     if (request.method !== "POST") return new Response("Method not allowed", { status: 405, headers: cors });
     let body;
@@ -29,24 +35,101 @@ export default {
     if (!question) return new Response("Missing question", { status: 400, headers: cors });
     const history = (Array.isArray(body.history) ? body.history : []).slice(-6)
       .map(h => ({ role: h.role === "model" ? "model" : "user", parts: [{ text: String(h.text || "").slice(0, 800) }] }));
-    const ask = () => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${env.GEMINI_MODEL || "gemini-2.5-flash"}:generateContent?key=${env.GEMINI_API_KEY}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: PROFILE }] },
-        contents: [...history, { role: "user", parts: [{ text: question }] }],
-        generationConfig: { temperature: 0.2, maxOutputTokens: 800, thinkingConfig: { thinkingBudget: 0 } }
-      })
-    });
-    // Gemini occasionally returns an empty candidate; retry once before giving up.
-    let answer = "";
-    for (let attempt = 0; attempt < 2 && !answer; attempt++) {
-      const res = await ask();
-      if (!res.ok) continue;
-      const data = await res.json();
-      answer = (data?.candidates?.[0]?.content?.parts?.map(p => p.text).join("") || "").trim();
+
+    const today = new Date().toISOString().slice(0, 10);
+    const system = `Today's date is ${today}. Any date before today is in the past: he completed his M.Tech (IIT Kharagpur) in 2025 and is not a student now.\n\n${PROFILE}`;
+    const contents = [...history, { role: "user", parts: [{ text: question }] }];
+    const gh = new GitHubTools(env, ctx);
+
+    // Up to 5 model calls: tool rounds plus one retry if Gemini returns an empty answer.
+    let answer = "", emptyRetries = 0;
+    for (let call = 0; call < 5 && !answer; call++) {
+      const lastCall = call === 4;
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${env.GEMINI_MODEL || "gemini-2.5-flash"}:generateContent?key=${env.GEMINI_API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: system }] },
+          contents,
+          tools: [{ functionDeclarations: TOOLS }],
+          toolConfig: { functionCallingConfig: { mode: lastCall ? "NONE" : "AUTO" } },
+          generationConfig: { temperature: 0.2, maxOutputTokens: 800, thinkingConfig: { thinkingBudget: 0 } }
+        })
+      });
+      if (!res.ok) { if (emptyRetries++ < 1) continue; break; }
+      const content = (await res.json())?.candidates?.[0]?.content;
+      const parts = content?.parts || [];
+      const calls = parts.filter(p => p.functionCall);
+      if (calls.length) {
+        contents.push(content);
+        const responses = [];
+        for (const c of calls) responses.push({ functionResponse: { name: c.functionCall.name, response: await gh.run(c.functionCall.name, c.functionCall.args || {}) } });
+        contents.push({ role: "user", parts: responses });
+        continue;
+      }
+      answer = parts.map(p => p.text || "").join("").trim();
+      if (!answer && emptyRetries++ >= 1) break;
     }
-    if (!answer) return new Response(JSON.stringify({ answer: "" }), { status: 502, headers: { ...cors, "Content-Type": "application/json" } });
-    return new Response(JSON.stringify({ answer }), { headers: { ...cors, "Content-Type": "application/json" } });
+    if (!answer) return json({ answer: "" }, 502);
+    return json({ answer });
   }
 };
+
+const TOOLS = [
+  { name: "list_repo_files", description: "List the files in one of Adarsh's public GitHub repos (owner adarshLabs). Returns the default branch and file paths. Call with no repo to list his public repos.",
+    parameters: { type: "OBJECT", properties: { repo: { type: "STRING", description: "Repo name, e.g. gpt2-from-scratch. Omit to list repos." } } } },
+  { name: "read_file", description: "Read a text file from one of Adarsh's public GitHub repos. Long files are truncated.",
+    parameters: { type: "OBJECT", properties: { repo: { type: "STRING" }, path: { type: "STRING", description: "File path exactly as returned by list_repo_files" } }, required: ["repo", "path"] } }
+];
+
+class GitHubTools {
+  constructor(env, ctx) { this.env = env; this.ctx = ctx; }
+
+  // GET with a one-hour edge cache, so repeated questions don't spend GitHub's rate limit.
+  async get(url, asJson) {
+    const cache = caches.default, key = new Request(url);
+    let res = await cache.match(key);
+    if (!res) {
+      const headers = { "User-Agent": "ask-adarsh-worker", Accept: asJson ? "application/vnd.github+json" : "*/*" };
+      if (this.env.GITHUB_TOKEN && url.startsWith("https://api.github.com/")) headers.Authorization = `Bearer ${this.env.GITHUB_TOKEN}`;
+      res = await fetch(url, { headers });
+      if (!res.ok) return { error: `GitHub returned ${res.status}` };
+      res = new Response(res.body, res);
+      res.headers.set("Cache-Control", "public, max-age=3600");
+      this.ctx?.waitUntil(cache.put(key, res.clone()));
+    }
+    return asJson ? res.json() : res.text();
+  }
+
+  async repos() {
+    const list = await this.get(`https://api.github.com/users/${GH_OWNER}/repos?per_page=100&type=owner`, true);
+    if (list.error) return list;
+    return list.filter(r => !r.private && !r.fork).map(r => ({ name: r.name, branch: r.default_branch, description: r.description || "" }));
+  }
+
+  async run(name, args) {
+    try {
+      const repos = await this.repos();
+      if (repos.error) return repos;
+      if (name === "list_repo_files" && !args.repo) return { repos };
+      const repo = repos.find(r => r.name.toLowerCase() === String(args.repo || "").toLowerCase());
+      if (!repo) return { error: `No public repo named "${args.repo}". Public repos: ${repos.map(r => r.name).join(", ")}` };
+      if (name === "list_repo_files") {
+        const tree = await this.get(`https://api.github.com/repos/${GH_OWNER}/${repo.name}/git/trees/${repo.branch}?recursive=1`, true);
+        if (tree.error) return tree;
+        const files = (tree.tree || []).filter(t => t.type === "blob").map(t => t.path);
+        return { repo: repo.name, branch: repo.branch, files: files.slice(0, 400), truncated: files.length > 400 };
+      }
+      if (name === "read_file") {
+        const path = String(args.path || "");
+        if (!path || path.includes("..") || path.startsWith("/")) return { error: "Invalid path" };
+        const text = await this.get(`https://raw.githubusercontent.com/${GH_OWNER}/${repo.name}/${repo.branch}/${path.split("/").map(encodeURIComponent).join("/")}`, false);
+        if (typeof text !== "string") return text;
+        return { url: `https://github.com/${GH_OWNER}/${repo.name}/blob/${repo.branch}/${path}`, content: text.slice(0, 12000), truncated: text.length > 12000 };
+      }
+      return { error: `Unknown tool ${name}` };
+    } catch (e) {
+      return { error: "Tool failed" };
+    }
+  }
+}
