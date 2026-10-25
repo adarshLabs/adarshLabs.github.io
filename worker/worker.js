@@ -41,12 +41,17 @@ export default {
     const contents = [...history, { role: "user", parts: [{ text: question }] }];
     const gh = new GitHubTools(env, ctx);
 
-    // Up to 5 model calls: tool rounds plus one retry if Gemini returns an empty answer.
-    // If the main model is rate-limited or down, fall back to flash-lite, which has its own free-tier quota.
-    const models = [env.GEMINI_MODEL || "gemini-2.5-flash", "gemini-2.5-flash-lite"];
+    // Up to 8 model calls: model fallbacks, tool rounds, and one retry if Gemini returns an empty answer.
+    // Free-tier quotas are per model, so try them in order of daily allowance (3.1 Flash-Lite: 500/day).
+    // Move on when a model is rate-limited (429), unknown (404), rejects the request (400) or is down (5xx).
+    const models = [...new Set([env.GEMINI_MODEL, "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-2.5-flash"].filter(Boolean))];
+    // 2.5 models spend thinking tokens from maxOutputTokens unless the budget is 0; 3.x lite models default to minimal thinking.
+    const genConfig = id => id.startsWith("gemini-2.5")
+      ? { temperature: 0.2, maxOutputTokens: 800, thinkingConfig: { thinkingBudget: 0 } }
+      : { temperature: 0.2, maxOutputTokens: 1500 };
     let model = 0, answer = "", emptyRetries = 0, reason = "";
-    for (let call = 0; call < 5 && !answer; call++) {
-      const lastCall = call === 4;
+    for (let call = 0; call < 8 && !answer; call++) {
+      const lastCall = call === 7;
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${models[model]}:generateContent?key=${env.GEMINI_API_KEY}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -55,14 +60,14 @@ export default {
           contents,
           tools: [{ functionDeclarations: TOOLS }],
           toolConfig: { functionCallingConfig: { mode: lastCall ? "NONE" : "AUTO" } },
-          generationConfig: { temperature: 0.2, maxOutputTokens: 800, thinkingConfig: { thinkingBudget: 0 } }
+          generationConfig: genConfig(models[model])
         })
       });
       if (!res.ok) {
         const err = await res.text();
         reason = `${models[model]} ${res.status}: ${(err.match(/"message":\s*"([^"]{0,200})/) || [])[1] || ""}`;
         console.error(reason);
-        if ((res.status === 429 || res.status >= 500) && model < models.length - 1) { model++; continue; }
+        if ([400, 404, 429].includes(res.status) || res.status >= 500) { if (model < models.length - 1) { model++; continue; } break; }
         if (emptyRetries++ < 1) continue; break;
       }
       const cand = (await res.json())?.candidates?.[0];
