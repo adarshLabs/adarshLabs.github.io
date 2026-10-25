@@ -35,7 +35,7 @@ export default {
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: PROFILE }] },
         contents: [...history, { role: "user", parts: [{ text: question }] }],
-        generationConfig: { temperature: 0.2, maxOutputTokens: 400 }
+        generationConfig: { temperature: 0.2, maxOutputTokens: 800, thinkingConfig: { thinkingBudget: 0 } }
       })
     });
     if (!res.ok) return new Response(JSON.stringify({ answer: "" }), { status: 502, headers: { ...cors, "Content-Type": "application/json" } });

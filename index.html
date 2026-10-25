@@ -665,7 +665,7 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
 <script>
 (function () {
   // Optional: URL of a deployed chat proxy (see worker/README.md). Empty = answer locally from the knowledge base below.
-  const CHAT_ENDPOINT = "";
+  const CHAT_ENDPOINT = "https://ask-adarsh.adarshlabs.workers.dev";
   const GH = "https://github.com/adarshLabs/";
   const a = (href, text) => `<a href="${href}" target="_blank" rel="noopener">${text}</a>`;
 
@@ -763,7 +763,7 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
     add(esc(q), "me"); input.value = "";
     const t = add(`<span class="typing"><i></i><i></i><i></i></span>`, "bot");
     let html = null;
-    if (CHAT_ENDPOINT) {
+    if (CHAT_ENDPOINT && localAnswer(q) !== PERSONAL_REPLY) {
       try {
         const res = await fetch(CHAT_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: q, history: history.slice(-6) }) });
         if (res.ok) { const j = await res.json(); if (j.answer) html = esc(j.answer).replace(/\n\n/g, "</p><p>").replace(/\n/g, "<br>").replace(/(https:\/\/[^\s<)]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>'); html = html && "<p>" + html + "</p>"; }
