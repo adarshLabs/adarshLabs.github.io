@@ -630,9 +630,6 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
 .msg.bot { align-self: flex-start; background: var(--paper); border: 1px solid var(--rule); border-top-left-radius: 4px; }
 .msg.me { align-self: flex-end; background: var(--accent); color: var(--on-accent); border-top-right-radius: 4px; }
 .msg .src { display: block; margin-top: 8px; font: 400 .74rem/1.4 var(--mono); color: var(--ink-3); }
-.chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 10px; }
-.chip { border: 1px solid var(--rule); background: var(--paper); color: var(--ink-2); border-radius: 999px; padding: 6px 10px; font: 400 .76rem/1 var(--mono); cursor: pointer; }
-.chip:hover { border-color: var(--accent); color: var(--accent); }
 .ask-form { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--rule); background: var(--paper); }
 .ask-form input { flex: 1; min-width: 0; padding: 10px 12px; border: 1px solid var(--rule); border-radius: 10px; background: var(--sheet); color: var(--ink); font: 400 .92rem/1.2 var(--body); }
 .ask-form input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
@@ -665,7 +662,6 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
     <button class="ask-close" id="ask-close" type="button" aria-label="Close">×</button>
   </div>
   <div class="ask-log" id="ask-log" aria-live="polite"></div>
-  <div class="chips" id="ask-chips"></div>
   <form class="ask-form" id="ask-form">
     <label for="ask-input" class="sr-only" style="position:absolute;left:-9999px">Your question</label>
     <input id="ask-input" type="text" autocomplete="off" placeholder="e.g. What did you build with LoRA?" maxlength="400">
@@ -740,7 +736,7 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
   // Personal topics the assistant always declines, whatever else the question mentions.
   const PERSONAL = new Set("age born birthday birthdate married marriage wife husband girlfriend boyfriend relationship dating family father mother parent parents brother sister sibling siblings kids children religion caste politics political vote salary ctc income hometown phone mobile whatsapp aadhaar passport health medical height weight food favourite favorite hobby hobbies movie movies song music friend friends".split(" "));
   const PERSONAL_REPLY = `<p>I can only answer questions about Adarsh's education, career and work, so I can't share personal information.</p><p>Try asking about his projects, research, skills or professional background.</p>`;
-  const SUGGEST = ["Tell me about yourself", "Where did you study?", "What is your current role?", "What did you build with LoRA?", "What is your research paper about?", "How does your agent eval work?"];
+  const SUGGEST = ["Tell me about yourself", "Where did you study?", "What is your current role?", "What did you build with LoRA?", "What is your research paper about?", "How does your agent eval work?", "Which file in gpt2-from-scratch has the KV cache?"];
 
   const STOP = new Set("a an the is are was were be to of in on for and or with what which who how why do does did you your me my i it this that about tell can could please any have has from at by as".split(" "));
   const norm = s => s.toLowerCase().replace(/[^a-z0-9.+\-\/ ]/g, " ").split(/\s+/).map(w => w.replace(/(ing|ed|es|s)$/, "")).filter(w => w && !STOP.has(w));
@@ -765,7 +761,7 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
   }
 
   const $ = id => document.getElementById(id);
-  const panel = $("ask-panel"), log = $("ask-log"), input = $("ask-input"), fab = $("ask-open"), chips = $("ask-chips");
+  const panel = $("ask-panel"), log = $("ask-log"), input = $("ask-input"), fab = $("ask-open");
   const history = [];
   function add(html, who) { const m = document.createElement("div"); m.className = "msg " + who; m.innerHTML = html; log.appendChild(m); log.scrollTop = log.scrollHeight; return m; }
   const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -860,10 +856,17 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
     if (e.key === "Enter" || e.key === " ") { e.preventDefault(); panel.hidden ? open() : close(); }
   });
   setTimeout(() => { if (panel.hidden) { tip.hidden = false; setTimeout(() => tip.hidden = true, 6000); } }, 1800);
-  SUGGEST.forEach(s => { const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = s; b.onclick = () => ask(s); chips.appendChild(b); });
+  // Suggestions rotate as the input placeholder; submitting an empty box asks the one shown.
+  let suggestion = 3;
+  const showSuggestion = () => { input.placeholder = `e.g. ${SUGGEST[suggestion]}`; };
+  showSuggestion();
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) setInterval(() => {
+    if (panel.hidden || input.value || document.hidden) return;
+    suggestion = (suggestion + 1) % SUGGEST.length; showSuggestion();
+  }, 3000);
   $("ask-close").addEventListener("click", close);
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !panel.hidden) close(); });
-  $("ask-form").addEventListener("submit", e => { e.preventDefault(); ask(input.value); });
+  $("ask-form").addEventListener("submit", e => { e.preventDefault(); ask(input.value.trim() ? input.value : SUGGEST[suggestion]); });
   document.querySelectorAll("[data-ask]").forEach(el => el.addEventListener("click", e => { e.preventDefault(); open(); ask(el.dataset.ask); }));
   if (CHAT_ENDPOINT) $("ask-mode").textContent = "AI answers grounded in my repos";
 })();
