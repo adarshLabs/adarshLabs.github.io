@@ -633,6 +633,9 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
 .ask-form { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--rule); background: var(--paper); }
 .ask-form input { flex: 1; min-width: 0; padding: 10px 12px; border: 1px solid var(--rule); border-radius: 10px; background: var(--sheet); color: var(--ink); font: 400 .92rem/1.2 var(--body); }
 .ask-form input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.ask-form input::placeholder { color: var(--ink-3); opacity: 1; transition: color .6s ease; }
+.ask-form input.ph-out::placeholder { color: transparent; }
+@media (prefers-reduced-motion: reduce) { .ask-form input::placeholder { transition: none; } }
 .ask-form button { padding: 10px 14px; border: 0; border-radius: 10px; background: var(--accent); color: var(--on-accent); font: 500 .82rem/1 var(--mono); cursor: pointer; }
 .typing { display: inline-flex; gap: 4px; } .typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-3); animation: blink 1s infinite; } .typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }
 @keyframes blink { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
@@ -862,7 +865,12 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
   showSuggestion();
   if (!matchMedia("(prefers-reduced-motion: reduce)").matches) setInterval(() => {
     if (panel.hidden || input.value || document.hidden) return;
-    suggestion = (suggestion + 1 + Math.floor(Math.random() * (SUGGEST.length - 1))) % SUGGEST.length; showSuggestion();
+    // Fade the old question out, swap it, fade the new one in.
+    input.classList.add("ph-out");
+    setTimeout(() => {
+      suggestion = (suggestion + 1 + Math.floor(Math.random() * (SUGGEST.length - 1))) % SUGGEST.length; showSuggestion();
+      input.classList.remove("ph-out");
+    }, 600);
   }, 30000);
   $("ask-close").addEventListener("click", close);
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !panel.hidden) close(); });
