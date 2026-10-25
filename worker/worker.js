@@ -42,10 +42,12 @@ export default {
     const gh = new GitHubTools(env, ctx);
 
     // Up to 5 model calls: tool rounds plus one retry if Gemini returns an empty answer.
-    let answer = "", emptyRetries = 0;
+    // If the main model is rate-limited or down, fall back to flash-lite, which has its own free-tier quota.
+    const models = [env.GEMINI_MODEL || "gemini-2.5-flash", "gemini-2.5-flash-lite"];
+    let model = 0, answer = "", emptyRetries = 0, reason = "";
     for (let call = 0; call < 5 && !answer; call++) {
       const lastCall = call === 4;
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${env.GEMINI_MODEL || "gemini-2.5-flash"}:generateContent?key=${env.GEMINI_API_KEY}`, {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${models[model]}:generateContent?key=${env.GEMINI_API_KEY}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -56,8 +58,15 @@ export default {
           generationConfig: { temperature: 0.2, maxOutputTokens: 800, thinkingConfig: { thinkingBudget: 0 } }
         })
       });
-      if (!res.ok) { if (emptyRetries++ < 1) continue; break; }
-      const content = (await res.json())?.candidates?.[0]?.content;
+      if (!res.ok) {
+        const err = await res.text();
+        reason = `${models[model]} ${res.status}: ${(err.match(/"message":\s*"([^"]{0,200})/) || [])[1] || ""}`;
+        console.error(reason);
+        if ((res.status === 429 || res.status >= 500) && model < models.length - 1) { model++; continue; }
+        if (emptyRetries++ < 1) continue; break;
+      }
+      const cand = (await res.json())?.candidates?.[0];
+      const content = cand?.content;
       const parts = content?.parts || [];
       const calls = parts.filter(p => p.functionCall);
       if (calls.length) {
@@ -68,9 +77,10 @@ export default {
         continue;
       }
       answer = parts.map(p => p.text || "").join("").trim();
+      if (!answer) { reason = `empty answer (finishReason ${cand?.finishReason || "none"})`; console.error(reason); }
       if (!answer && emptyRetries++ >= 1) break;
     }
-    if (!answer) return json({ answer: "" }, 502);
+    if (!answer) return json({ answer: "", reason }, 502);
     return json({ answer });
   }
 };
