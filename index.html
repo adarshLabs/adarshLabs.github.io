@@ -856,14 +856,14 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
     if (e.key === "Enter" || e.key === " ") { e.preventDefault(); panel.hidden ? open() : close(); }
   });
   setTimeout(() => { if (panel.hidden) { tip.hidden = false; setTimeout(() => tip.hidden = true, 6000); } }, 1800);
-  // Suggestions rotate as the input placeholder; submitting an empty box asks the one shown.
-  let suggestion = 3;
+  // One random suggestion sits in the input placeholder and changes every 30s; submitting an empty box asks it.
+  let suggestion = Math.floor(Math.random() * SUGGEST.length);
   const showSuggestion = () => { input.placeholder = `e.g. ${SUGGEST[suggestion]}`; };
   showSuggestion();
   if (!matchMedia("(prefers-reduced-motion: reduce)").matches) setInterval(() => {
     if (panel.hidden || input.value || document.hidden) return;
-    suggestion = (suggestion + 1) % SUGGEST.length; showSuggestion();
-  }, 3000);
+    suggestion = (suggestion + 1 + Math.floor(Math.random() * (SUGGEST.length - 1))) % SUGGEST.length; showSuggestion();
+  }, 30000);
   $("ask-close").addEventListener("click", close);
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !panel.hidden) close(); });
   $("ask-form").addEventListener("submit", e => { e.preventDefault(); ask(input.value.trim() ? input.value : SUGGEST[suggestion]); });
