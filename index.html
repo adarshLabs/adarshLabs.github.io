@@ -363,7 +363,7 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
             <li><b>5.7×</b>faster decoding (Apple MPS)</li>
             <li><b>0.24%</b>params with LoRA</li>
           </ul>
-          <div class="links"><a href="https://github.com/adarshLabs/gpt2-from-scratch" target="_blank" rel="noopener">Repository ↗</a><a href="https://github.com/adarshLabs/gpt2-from-scratch/blob/main/transformer_models/gpt2.py" target="_blank" rel="noopener">Model code ↗</a><a href="https://github.com/adarshLabs/gpt2-from-scratch/blob/main/lora/lora_layer.py" target="_blank" rel="noopener">LoRA code ↗</a><a href="https://medium.com/@tiwariadarshformal/lora-by-hand-the-format-transferred-and-the-content-started-to-ab8c9e7becb0" target="_blank" rel="noopener">LoRA write-up ↗</a></div>
+          <div class="links"><a href="https://github.com/adarshLabs/gpt2-from-scratch" target="_blank" rel="noopener">Repository ↗</a><a href="https://github.com/adarshLabs/gpt2-from-scratch/blob/main/transformer_models/gpt2.py" target="_blank" rel="noopener">Model code ↗</a><a href="https://github.com/adarshLabs/gpt2-from-scratch/blob/main/lora/lora_layer.py" target="_blank" rel="noopener">LoRA code ↗</a><a href="https://medium.com/@tiwariadarshformal/building-gpt-2-from-scratch-366c0f8fa31e" target="_blank" rel="noopener">GPT-2 write-up ↗</a><a href="https://medium.com/@tiwariadarshformal/lora-by-hand-the-format-transferred-and-the-content-started-to-ab8c9e7becb0" target="_blank" rel="noopener">LoRA write-up ↗</a></div>
           <details class="more"><summary>How it was measured</summary><p>124M parameters (12 layers, 12 heads, d768), trained on TinyStories for 10k steps (~61M tokens, ~5 h on a T4) to validation loss 1.5647. KV cache: 1.64× on a T4, 5.7× on Apple MPS. LoRA (rank 8, alpha 16) cut Shakespeare perplexity 4.9× (1264 to 258) in under five minutes on a Kaggle T4. Single run.</p></details>
         </div>
         <figure class="viz" style="margin:0">
@@ -678,6 +678,7 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
   // Optional: URL of a deployed chat proxy (see worker/README.md). Empty = answer locally from the knowledge base below.
   const CHAT_ENDPOINT = "https://ask-adarsh.adarshlabs.workers.dev";
   const GH = "https://github.com/adarshLabs/";
+  const GPT2_MEDIUM = "https://medium.com/@tiwariadarshformal/building-gpt-2-from-scratch-366c0f8fa31e";
   const MEDIUM = "https://medium.com/@tiwariadarshformal/lora-by-hand-the-format-transferred-and-the-content-started-to-ab8c9e7becb0";
   const a = (href, text) => `<a href="${href}" target="_blank" rel="noopener">${text}</a>`;
 
@@ -685,8 +686,8 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
   const KB = [
     { id: "intro", k: "who are you about yourself introduce adarsh tiwari summary background overview tell me profile",
       a: `<p>I'm Adarsh Tiwari, an applied AI engineer. I build models from first principles and publish the measurements, including null results.</p><ul><li>Trained a 124M-parameter GPT from scratch, with a hand-written KV cache and LoRA</li><li>Writing a paper on whether LLMs actually beat random search in architecture search</li><li>Built a from-scratch agent with an eval harness that tests failure cases</li><li>M.Tech in Computer Science from IIT Kharagpur (2025), thesis on neural architecture search</li><li>Senior Software Engineer at HCLTech, Bengaluru, since Aug 2025, after shipping three GenAI systems there in 2025</li></ul>` },
-    { id: "gpt2", k: "gpt gpt2 gpt-2 transformer from scratch language model llm pretraining trained build decoder tinystories loss perplexity 124m",
-      a: `<p>${a(GH + "gpt2-from-scratch", "gpt2-from-scratch")} is a decoder-only transformer where every mechanism is my own code: attention, masks, RoPE, pre-norm blocks, training loop and sampling.</p><p>The 124M model (12 layers, 12 heads, d_model 768, context 256) trained on TinyStories for 10,000 steps (~61M tokens, ~5 hours on a Kaggle T4) reached validation loss <b>1.5647</b>, perplexity <b>4.78</b>.</p>`, src: "gpt2-from-scratch" },
+    { id: "gpt2", k: "gpt gpt2 gpt-2 transformer from scratch language model llm pretraining trained build decoder tinystories loss perplexity 124m medium article write-up",
+      a: `<p>${a(GH + "gpt2-from-scratch", "gpt2-from-scratch")} is a decoder-only transformer where every mechanism is my own code: attention, masks, RoPE, pre-norm blocks, training loop and sampling.</p><p>The 124M model (12 layers, 12 heads, d_model 768, context 256) trained on TinyStories for 10,000 steps (~61M tokens, ~5 hours on a Kaggle T4) reached validation loss <b>1.5647</b>, perplexity <b>4.78</b>.</p><p>Write-up on Medium: ${a(GPT2_MEDIUM, "Building GPT-2 From Scratch")}, covering what each piece does and an honest KV cache benchmark.</p>`, src: "gpt2-from-scratch" },
     { id: "kv", k: "kv cache key value caching inference speed speedup generation fast decoding t4 mps apple",
       a: `<p>I implemented KV caching by hand in ${a(GH + "gpt2-from-scratch", "gpt2-from-scratch")}. Measured speed-up: <b>1.27×</b> at 200 tokens rising to <b>1.64×</b> at 2,000 on an NVIDIA T4, and <b>5.7×</b> on Apple Silicon (MPS).</p><p>The cache removes roughly 240× of the attention arithmetic but buys only 1.64× of wall clock on the T4, because time was never dominated by that arithmetic. Keys are rotated with RoPE once at their absolute position, so the sliding window never needs re-rotation.</p>`, src: "gpt2-from-scratch README" },
     { id: "lora", k: "lora medium write-up article low rank adaptation fine tuning finetune peft adapters parameter efficient shakespeare",
@@ -733,7 +734,9 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
       a: `<p>I'm based in Bengaluru, India.</p>` },
     { id: "hire", k: "looking for job role roles hiring open opportunities available position",
       a: `<p>I'm interested in applied AI and LLM engineering roles, especially on teams that care about evaluation. Use the contact links on this page to reach me.</p>` },
-    { id: "contact", k: "contact reach email medium blog articles writing github hugging face huggingface linkedin connect",
+    { id: "writing", k: "medium articles article blog writing write-up writeup posts published read essays",
+      a: `<p>I write on Medium (${a("https://medium.com/@tiwariadarshformal", "@tiwariadarshformal")}). Two articles so far:</p><ul><li>${a(GPT2_MEDIUM, "Building GPT-2 From Scratch")}: what each piece does, and an honest KV cache benchmark</li><li>${a(MEDIUM, "LoRA by hand: the format transferred, and some of the content followed")}: LoRA written from scratch on the 124M GPT-2</li></ul>` },
+    { id: "contact", k: "contact reach email github hugging face huggingface linkedin connect",
       a: `<p>LinkedIn: ${a("https://www.linkedin.com/in/adarsh-tiwari-ai", "adarsh-tiwari-ai")}<br>GitHub: ${a("https://github.com/adarshLabs", "adarshLabs")}<br>Hugging Face: ${a("https://huggingface.co/adarshLab", "adarshLab")}<br>Medium: ${a("https://medium.com/@tiwariadarshformal", "@tiwariadarshformal")}</p><p>See the contact section at the bottom of the page.</p>` },
     { id: "site", k: "this website site chatbot how built made assistant",
       a: `<p>This site is hand-written HTML and CSS with no framework or tracking. This assistant answers from a knowledge base drawn from my repositories and my resume.</p>` }
@@ -796,6 +799,12 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
       return out;
     }).join("");
   }
+  log.addEventListener("click", e => {
+    const el = e.target.closest("a[href]");
+    if (!el) return;
+    e.preventDefault();
+    window.open(el.href, "_blank", "noopener,noreferrer");
+  });
   async function ask(q) {
     q = q.trim(); if (!q) return;
     add(esc(q), "me"); input.value = "";
