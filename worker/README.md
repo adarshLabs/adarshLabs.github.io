@@ -13,3 +13,10 @@ The key stays in Cloudflare and never reaches the browser. If the Worker fails, 
 The assistant can also read code in the public repos (list files, read a file) to answer questions like "where is RoPE implemented?".
 GitHub allows 60 unauthenticated API calls an hour, shared across Cloudflare's IPs, so add an optional secret `GITHUB_TOKEN`:
 a fine-grained token (github.com/settings/personal-access-tokens) with "Public repositories (read-only)" access and no other permissions.
+
+## Automatic deploys
+
+`.github/workflows/deploy-worker.yml` deploys this Worker with Wrangler whenever a change under `worker/` is pushed to `main`.
+It needs two repository secrets (Settings → Secrets and variables → Actions): `CLOUDFLARE_API_TOKEN` (the "Edit Cloudflare Workers" template) and `CLOUDFLARE_ACCOUNT_ID`.
+`worker/wrangler.toml` sets `keep_vars = true`, so the dashboard secrets (`GEMINI_API_KEY`, `GITHUB_TOKEN`) are left alone.
+You can also run it by hand from the Actions tab (Deploy chatbot worker → Run workflow).

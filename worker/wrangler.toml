@@ -1,0 +1,5 @@
+name = "ask-adarsh"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+# Keep variables and secrets (GEMINI_API_KEY, GITHUB_TOKEN) that are set in the Cloudflare dashboard.
+keep_vars = true
