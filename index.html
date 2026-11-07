@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Adarsh Tiwari</title>
+<title>Adarsh Tiwari · Applied AI Engineer</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="Adarsh Tiwari: Senior Software Engineer at HCLTech, M.Tech CSE from IIT Kharagpur. Applied AI and LLM engineer: GPT-2 from scratch, agents with real evals, and NAS research.">
 <link rel="canonical" href="https://adarshlabs.github.io/">
@@ -360,14 +360,14 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
           <p class="one">Every layer hand-written: attention, RoPE, training loop, sampling. No Hugging Face.</p>
           <ul class="chips-m">
             <li><b>4.78</b>val perplexity</li>
-            <li><b>5.7×</b>faster decoding</li>
+            <li><b>5.7×</b>faster decoding (Apple MPS)</li>
             <li><b>0.24%</b>params with LoRA</li>
           </ul>
-          <div class="links"><a href="https://github.com/adarshLabs/gpt2-from-scratch" target="_blank" rel="noopener">Repository ↗</a><a href="https://github.com/adarshLabs/gpt2-from-scratch/blob/main/transformer_models/gpt2.py" target="_blank" rel="noopener">Model code ↗</a><a href="https://github.com/adarshLabs/gpt2-from-scratch/blob/main/lora/lora_layer.py" target="_blank" rel="noopener">LoRA code ↗</a></div>
-          <details class="more"><summary>How it was measured</summary><p>124M parameters (12 layers, 12 heads, d768), trained on TinyStories for 10k steps (~61M tokens, ~5 h on a T4) to validation loss 1.5647. KV cache: 1.64× on a T4, 5.7× on Apple MPS. LoRA (rank 8) cut Shakespeare perplexity 4.31× in 20 minutes on a MacBook Air.</p></details>
+          <div class="links"><a href="https://github.com/adarshLabs/gpt2-from-scratch" target="_blank" rel="noopener">Repository ↗</a><a href="https://github.com/adarshLabs/gpt2-from-scratch/blob/main/transformer_models/gpt2.py" target="_blank" rel="noopener">Model code ↗</a><a href="https://github.com/adarshLabs/gpt2-from-scratch/blob/main/lora/lora_layer.py" target="_blank" rel="noopener">LoRA code ↗</a><a href="https://medium.com/@tiwariadarshformal/lora-by-hand-the-format-transferred-and-the-content-started-to-ab8c9e7becb0" target="_blank" rel="noopener">LoRA write-up ↗</a></div>
+          <details class="more"><summary>How it was measured</summary><p>124M parameters (12 layers, 12 heads, d768), trained on TinyStories for 10k steps (~61M tokens, ~5 h on a T4) to validation loss 1.5647. KV cache: 1.64× on a T4, 5.7× on Apple MPS. LoRA (rank 8, alpha 16) cut Shakespeare perplexity 4.9× (1264 to 258) in under five minutes on a Kaggle T4. Single run.</p></details>
         </div>
         <figure class="viz" style="margin:0">
-          <svg viewBox="0 0 460 270" role="img" aria-label="Model architecture stack, KV cache speed-up bars (T4 1.64x, Apple MPS 5.7x) and LoRA perplexity drop from 1255 to 291">
+          <svg viewBox="0 0 460 270" role="img" aria-label="Model architecture stack, KV cache speed-up bars (T4 1.64x, Apple MPS 5.7x) and LoRA perplexity drop from 1264 to 258">
             <!-- architecture stack -->
             <rect class="box" x="10" y="226" width="170" height="30" rx="6"/><text class="t" x="95" y="245" text-anchor="middle">tokens (GPT-2 BPE)</text>
             <rect class="box" x="10" y="182" width="170" height="30" rx="6"/><text class="t" x="95" y="201" text-anchor="middle">token embedding</text>
@@ -387,9 +387,9 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
             <!-- LoRA perplexity: 0..1300 over 180px -->
             <text class="tb" x="230" y="140">LoRA: Shakespeare perplexity</text>
             <text class="t" x="230" y="168">before</text>
-            <rect class="fill-m" x="282" y="156" width="160" height="18" rx="3"/><text class="tw" x="436" y="170" text-anchor="end" style="fill:var(--sheet)">~1255</text>
+            <rect class="fill-m" x="282" y="156" width="160" height="18" rx="3"/><text class="tw" x="436" y="170" text-anchor="end" style="fill:var(--sheet)">~1264</text>
             <text class="t" x="230" y="198">after</text>
-            <rect class="fill-a" x="282" y="186" width="37" height="18" rx="3"/><text class="tb" x="326" y="200">~291</text>
+            <rect class="fill-a" x="282" y="186" width="33" height="18" rx="3"/><text class="tb" x="322" y="200">~258</text>
             <text class="t" x="230" y="236">trains 294,912 of 124M params</text>
             <rect class="box" x="230" y="244" width="212" height="10" rx="3"/><rect class="fill-a" x="230" y="244" width="3" height="10" rx="1"/>
           </svg>
@@ -577,6 +577,7 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
           <li><span>LinkedIn</span><a href="https://www.linkedin.com/in/adarsh-tiwari-ai" target="_blank" rel="noopener">adarsh-tiwari-ai ↗</a></li>
           <li><span>GitHub</span><a href="https://github.com/adarshLabs" target="_blank" rel="noopener">adarshLabs ↗</a></li>
           <li><span>Hugging Face</span><a href="https://huggingface.co/adarshLab" target="_blank" rel="noopener">adarshLab ↗</a></li>
+          <li><span>Medium</span><a href="https://medium.com/@tiwariadarshformal" target="_blank" rel="noopener">@tiwariadarshformal ↗</a></li>
         </ul>
       </div>
     </div>
@@ -677,6 +678,7 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
   // Optional: URL of a deployed chat proxy (see worker/README.md). Empty = answer locally from the knowledge base below.
   const CHAT_ENDPOINT = "https://ask-adarsh.adarshlabs.workers.dev";
   const GH = "https://github.com/adarshLabs/";
+  const MEDIUM = "https://medium.com/@tiwariadarshformal/lora-by-hand-the-format-transferred-and-the-content-started-to-ab8c9e7becb0";
   const a = (href, text) => `<a href="${href}" target="_blank" rel="noopener">${text}</a>`;
 
   // Knowledge base: every fact here comes from Adarsh's own repositories, results files and resume.
@@ -687,8 +689,8 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
       a: `<p>${a(GH + "gpt2-from-scratch", "gpt2-from-scratch")} is a decoder-only transformer where every mechanism is my own code: attention, masks, RoPE, pre-norm blocks, training loop and sampling.</p><p>The 124M model (12 layers, 12 heads, d_model 768, context 256) trained on TinyStories for 10,000 steps (~61M tokens, ~5 hours on a Kaggle T4) reached validation loss <b>1.5647</b>, perplexity <b>4.78</b>.</p>`, src: "gpt2-from-scratch" },
     { id: "kv", k: "kv cache key value caching inference speed speedup generation fast decoding t4 mps apple",
       a: `<p>I implemented KV caching by hand in ${a(GH + "gpt2-from-scratch", "gpt2-from-scratch")}. Measured speed-up: <b>1.27×</b> at 200 tokens rising to <b>1.64×</b> at 2,000 on an NVIDIA T4, and <b>5.7×</b> on Apple Silicon (MPS).</p><p>The cache removes roughly 240× of the attention arithmetic but buys only 1.64× of wall clock on the T4, because time was never dominated by that arithmetic. Keys are rotated with RoPE once at their absolute position, so the sliding window never needs re-rotation.</p>`, src: "gpt2-from-scratch README" },
-    { id: "lora", k: "lora low rank adaptation fine tuning finetune peft adapters parameter efficient shakespeare",
-      a: `<p>LoRA is written from scratch in ${a(GH + "gpt2-from-scratch/blob/main/lora/lora_layer.py", "lora/lora_layer.py")}, with no PEFT or Hugging Face. Rank 8, alpha 16 on q_proj and v_proj across all 12 blocks: <b>294,912 of 123,998,545</b> parameters trainable (<b>0.24%</b>).</p><p>Fine-tuning the TinyStories model on Shakespeare for 500 steps (19.9 min on a MacBook Air) cut validation perplexity from ~1255 to ~291, a <b>4.31×</b> reduction. B is zero-initialised, so before training the wrapped model is bit-identical to the base (max logit difference 0.0).</p>`, src: "gpt2-from-scratch README" },
+    { id: "lora", k: "lora medium write-up article low rank adaptation fine tuning finetune peft adapters parameter efficient shakespeare",
+      a: `<p>LoRA is written from scratch in ${a(GH + "gpt2-from-scratch/blob/main/lora/lora_layer.py", "lora/lora_layer.py")}, with no PEFT or Hugging Face. Rank 8, alpha 16 on q_proj and v_proj across all 12 blocks: <b>294,912 of 123,998,545</b> parameters trainable (<b>0.24%</b>).</p><p>Fine-tuning the TinyStories model on Shakespeare for 500 steps (under five minutes on a Kaggle T4) cut validation perplexity from ~1264 to ~258, a <b>4.9×</b> reduction. It is a single run. Splitting the loss by token type showed that structure tokens (newlines, colons, speaker labels) were 25% of the text but 44% of the drop, and content tokens carried the other 56%. B is zero-initialised, so before training the wrapped model is bit-identical to the base (max logit difference 0.0).</p><p>Write-up: ${a(MEDIUM, "LoRA by hand on Medium")}</p>`, src: "gpt2-from-scratch README" },
     { id: "rope", k: "rope rotary positional embedding encoding position sinusoidal learned attention mask masking multi head",
       a: `<p>${a(GH + "gpt2-from-scratch", "gpt2-from-scratch")} includes three positional encodings (rotary, learned, sinusoidal), causal and padding masks, and custom multi-head attention tested for parity against PyTorch's implementation. The language model itself uses RoPE rather than GPT-2's learned absolute embeddings.</p>`, src: "gpt2-from-scratch" },
     { id: "nas", k: "research paper nas neural architecture search llm guided random search baseline nas-bench-201 arxiv icml publication audit do llms actually search",
@@ -718,7 +720,7 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
     { id: "approach", k: "approach philosophy workflow method methodology principles why different unique hire strengths what makes",
       a: `<p>Three habits show up in every repo: I build the mechanism myself before using a library, every claim ships with a measurement and its caveat, and every result is compared against the simplest baseline (random search, the index fund, the untrained model). I also publish my own bugs, such as the scorer bug in the agent harness.</p>` },
     { id: "experience", k: "work worked working experience experienced employer employers company companies job career industry professional history google microsoft amazon years yoe long timeline resume cv",
-      a: `<p>I've worked at HCLTech in Bengaluru since May 2025, about 1.25 years in industry:</p><ul><li><b>Senior Software Engineer</b>, Aug 2025–present: data platform work for Lloyds Banking Group (UK), including a 20+ TB migration to BigQuery</li><li><b>Academic Trainee, AI Engineering</b>, May–Jul 2025: built and shipped three generative-AI systems for internal use (a RAG assistant, an SOP generator and an e-commerce copywriting agent)</li></ul><p>Before that I was a research intern at IIT Kharagpur (May–Jul 2024). The from-scratch builds on this page (GPT-2, ScalarGrad, glassbox-agent) are my own-time work.</p>` },
+      a: `<p>I've worked at HCLTech in Bengaluru since May 2025, about 1.5 years in industry:</p><ul><li><b>Senior Software Engineer</b>, Aug 2025–present: data platform work for Lloyds Banking Group (UK), including a 20+ TB migration to BigQuery</li><li><b>Academic Trainee, AI Engineering</b>, May–Jul 2025: built and shipped three generative-AI systems for internal use (a RAG assistant, an SOP generator and an e-commerce copywriting agent)</li></ul><p>Before that I was a research intern at IIT Kharagpur (May–Jul 2024). The from-scratch builds on this page (GPT-2, ScalarGrad, glassbox-agent) are my own-time work.</p>` },
     { id: "current", k: "hcl hcltech current currently now present today lloyds bank banking client bigquery gcp gcs pub/sub pubsub migration migrate terraform harness ci/cd senior software engineer designation title position role day",
       a: `<p>I'm a <b>Senior Software Engineer at HCLTech, Bengaluru</b> (Aug 2025–present), working for the client Lloyds Banking Group, UK.</p><ul><li>Migrated 20+ TB of financial data to BigQuery through GCS, Pub/Sub and DAG-orchestrated pipelines</li><li>Redesigned table partitioning and schema to improve analytical query performance</li><li>Automated cloud infrastructure and containerised deployment with Terraform, Docker and Harness CI/CD</li></ul><p>This is data platform work. My GenAI work at HCLTech was May–Jul 2025.</p>` },
     { id: "genai", k: "genai generative trainee academic first shipped production prototype prototypes internal sop generator faiss ticket tickets incident incidents langchain chromadb 2025",
@@ -731,8 +733,8 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
       a: `<p>I'm based in Bengaluru, India.</p>` },
     { id: "hire", k: "looking for job role roles hiring open opportunities available position",
       a: `<p>I'm interested in applied AI and LLM engineering roles, especially on teams that care about evaluation. Use the contact links on this page to reach me.</p>` },
-    { id: "contact", k: "contact reach email github hugging face huggingface linkedin connect",
-      a: `<p>LinkedIn: ${a("https://www.linkedin.com/in/adarsh-tiwari-ai", "adarsh-tiwari-ai")}<br>GitHub: ${a("https://github.com/adarshLabs", "adarshLabs")}<br>Hugging Face: ${a("https://huggingface.co/adarshLab", "adarshLab")}</p><p>See the contact section at the bottom of the page.</p>` },
+    { id: "contact", k: "contact reach email medium blog articles writing github hugging face huggingface linkedin connect",
+      a: `<p>LinkedIn: ${a("https://www.linkedin.com/in/adarsh-tiwari-ai", "adarsh-tiwari-ai")}<br>GitHub: ${a("https://github.com/adarshLabs", "adarshLabs")}<br>Hugging Face: ${a("https://huggingface.co/adarshLab", "adarshLab")}<br>Medium: ${a("https://medium.com/@tiwariadarshformal", "@tiwariadarshformal")}</p><p>See the contact section at the bottom of the page.</p>` },
     { id: "site", k: "this website site chatbot how built made assistant",
       a: `<p>This site is hand-written HTML and CSS with no framework or tracking. This assistant answers from a knowledge base drawn from my repositories and my resume.</p>` }
   ];
