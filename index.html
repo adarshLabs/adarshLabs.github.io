@@ -338,7 +338,7 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
           <span class="when">2026</span>
           <h4>Independent research</h4>
           <span class="org">LLM-guided NAS paper</span>
-          <p>Preprint planned Nov 2026, targeting ICML 2027.</p>
+          <p>Paper in progress on NAS-Bench-201.</p>
         </div>
       </div>
       <div class="edu">
@@ -502,7 +502,7 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
       <div class="sec-head"><h2>Research</h2><p>Neural architecture search</p></div>
       <div class="paper">
         <div>
-          <div class="kicker">Preprint · arXiv Nov 2026 → ICML 2027</div>
+          <div class="kicker">Paper in progress</div>
           <h3>Do LLMs actually search?</h3>
           <p>LLM-guided architecture search papers never compare against random search. I ran that comparison on NAS-Bench-201.</p>
           <ul class="chips-m">
@@ -695,7 +695,7 @@ details.more p { margin: 10px 0 0; font-size: .92rem; color: var(--ink-2); max-w
     { id: "rope", k: "rope rotary positional embedding encoding position sinusoidal learned attention mask masking multi head",
       a: `<p>${a(GH + "gpt2-from-scratch", "gpt2-from-scratch")} includes three positional encodings (rotary, learned, sinusoidal), causal and padding masks, and custom multi-head attention tested for parity against PyTorch's implementation. The language model itself uses RoPE rather than GPT-2's learned absolute embeddings.</p>`, src: "gpt2-from-scratch" },
     { id: "nas", k: "research paper nas neural architecture search llm guided random search baseline nas-bench-201 arxiv icml publication audit do llms actually search",
-      a: `<p>My paper, <i>Do LLMs Actually Search? Random Search Is a Missing Baseline in LLM-Guided NAS</i>, is an audit plus a controlled study. It asks whether an LLM proposing architectures beats random sampling at the same query budget on NAS-Bench-201 (15,625 architectures, zero GPU for the search).</p><ul><li>None of the four recent papers audited closely includes a random-search comparison</li><li>100 random architectures reach 93.77%, within 0.60 points of the global best of 94.37%</li><li>Plan: arXiv preprint (cs.LG) in Nov 2026, then ICML 2027</li></ul><p>Code: ${a(GH + "llm-guided-nas", "llm-guided-nas")}</p>`, src: "llm-guided-nas" },
+      a: `<p>My paper, <i>Do LLMs Actually Search? Random Search Is a Missing Baseline in LLM-Guided NAS</i>, is an audit plus a controlled study. It asks whether an LLM proposing architectures beats random sampling at the same query budget on NAS-Bench-201 (15,625 architectures, zero GPU for the search).</p><ul><li>None of the four recent papers audited closely includes a random-search comparison</li><li>100 random architectures reach 93.77%, within 0.60 points of the global best of 94.37%</li></ul><p>Code: ${a(GH + "llm-guided-nas", "llm-guided-nas")}</p>`, src: "llm-guided-nas" },
     { id: "ablation", k: "prompt format ablation null result encoding prose adjacency identical trajectories repeat duplicates gemini",
       a: `<p>In the prompt-format ablation, three unrelated encodings of the search state (NATS string, adjacency list, plain prose) produced <b>bit-identical</b> search trajectories with gemini-3.1-flash-lite. 39 of 45 calls repeated an earlier proposal, even though the prompt said not to.</p><p>Conclusion: the model's knowledge of the strong all-3×3 cell is parametric, not lexical, and the feedback history did not measurably steer it. ${a(GH + "llm-guided-nas/blob/main/results/format_ablation.md", "Read the result")}</p>`, src: "llm-guided-nas/results" },
     { id: "education", k: "education graduation graduate graduated graduating degree degrees btech b.tech bachelor bachelors undergraduate undergrad ug pg postgraduate postgraduation mtech m.tech masters master university universities college colleges institute iit kharagpur kgp iitkgp gurukul kangri vishwavidyalaya gkv nit school passed pass out complete completed qualification qualifications cgpa gpa marks grade grades study studied academic academics alma mater batch year",
